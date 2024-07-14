@@ -15,6 +15,10 @@ class Expr(ABC):
 class ExprVisitor(ABC):
 
 	@abstractmethod
+	def visit_assign(self, assign: Assign) -> Any:
+		pass
+
+	@abstractmethod
 	def visit_binary(self, binary: Binary) -> Any:
 		pass
 
@@ -34,6 +38,15 @@ class ExprVisitor(ABC):
 	def visit_variable(self, variable: Variable) -> Any:
 		pass
 
+
+class Assign(Expr):
+
+	def __init__(self, name: Token, value: Expr):
+		self.name = name
+		self.value = value
+
+	def accept(self, visitor: ExprVisitor)-> Any:
+		return visitor.visit_assign(self)
 
 class Binary(Expr):
 

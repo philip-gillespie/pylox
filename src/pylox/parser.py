@@ -46,7 +46,20 @@ class Parser:
         return self.tokens[self.current - 1]
 
     def expression(self) -> expr.Expr:
-        return self.equality()
+        return self.assignment()
+
+    def assignment(self) -> expr.Expr:
+        expression = self.equality()
+        if self.match(TokenType.EQUAL):
+            equals: Token = self.previous()
+            value: expr.Expr = self.assignment()
+            if isinstance(expression, expr.Variable):
+                name: Token = expression.name
+                return expr.Assign(name, value)
+            raise ParserError(equals, "Invalid assignment target")
+            # Book says do not throw error.
+            # Book uses function `error`
+        return expression
 
     def equality(self) -> expr.Expr:
         expression: expr.Expr = self.comparison()

@@ -11,6 +11,7 @@ def main():
         output_dir,
         "expr",
         [
+            "Assign = name: Token, value: Expr",
             "Binary = left: Expr, operator: Token, right: Expr",
             "Grouping = expression: Expr",
             "Literal = value: Any",

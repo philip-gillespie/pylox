@@ -1,0 +1,12 @@
+// define_vs_assign.lox
+
+// below defines the variable
+var x = 5;
+print x;
+
+// below assigns the variable
+x = 3;
+print x;
+
+// assignment needs the variable defined with `var` first
+y = 4;

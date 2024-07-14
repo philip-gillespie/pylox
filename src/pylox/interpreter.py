@@ -17,6 +17,11 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
         self.environment.define(var_stmt.name.lexeme, value)
         return None
 
+    def visit_assign(self, assign: expr.Assign) -> Any:
+        value: Any = self.evaluate(assign.value)
+        self.environment.assign(assign.name, value)
+        return value
+
     def visit_variable(self, variable: expr.Variable) -> Any:
         return self.environment.get(variable.name)
 
@@ -121,3 +126,7 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
 
     def execute(self, statement: stmt.Stmt):
         statement.accept(self)
+
+
+if __name__ == "__main__":
+    interpreter = Interpreter()
