@@ -1,0 +1,6 @@
+// uninitialised_variables.lox
+// Variables can be declared without an initialiser
+// defaults to a nil value
+
+var a;
+print a; // "nil".

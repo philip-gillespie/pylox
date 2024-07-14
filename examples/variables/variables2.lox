@@ -1,0 +1,6 @@
+// variables2.lox
+// assign two variables and print from them
+
+var a = 1;
+var b = 2;
+print a + b;

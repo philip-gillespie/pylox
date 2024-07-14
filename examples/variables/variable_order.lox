@@ -1,0 +1,6 @@
+// variable_order.lox
+// This code should cause a Runtime Error
+// Should we allow variable access before definition?
+
+print a;
+var a = "too late!";

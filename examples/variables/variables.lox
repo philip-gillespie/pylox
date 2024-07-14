@@ -1,0 +1,7 @@
+// variables.lox
+// test whether variables have been implemented
+
+var a = "before";
+print a; // "before".
+var a = "after";
+print a; // "after".
