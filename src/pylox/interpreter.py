@@ -10,6 +10,20 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
     def __init__(self) -> None:
         self.environment = Environment()
 
+    def visit_block_stmt(self, block_stmt: stmt.BlockStmt):
+        self.execute_block(block_stmt.statements, Environment(self.environment))
+        return None
+
+    def execute_block(self, statements: list[stmt.Stmt], environment: Environment):
+        previous: Environment = self.environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
+
+
     def visit_var_stmt(self, var_stmt: stmt.VarStmt) -> Any:
         value: Any = None
         if var_stmt.initialiser != None:

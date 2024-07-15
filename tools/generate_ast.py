@@ -24,6 +24,7 @@ def main():
         output_dir,
         "stmt",
         [
+            "BlockStmt = statements: list[Stmt]",
             "ExpressionStmt = expression: Expr",
             "PrintStmt = expression: Expr",
             "VarStmt = name: Token, initialiser: Expr | None",
