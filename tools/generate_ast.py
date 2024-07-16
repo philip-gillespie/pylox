@@ -26,6 +26,7 @@ def main():
         [
             "BlockStmt = statements: list[Stmt]",
             "ExpressionStmt = expression: Expr",
+            "IfStmt = condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
             "PrintStmt = expression: Expr",
             "VarStmt = name: Token, initialiser: Expr | None",
         ],

@@ -3,7 +3,6 @@ from pylox.interpreter import Interpreter
 from pylox.scanner import Scanner, ScannerError
 from pylox.tokens import Token, TokenType
 from pylox.parser import Parser, ParserError
-from pylox.ast_printer import AstPrinter
 from pylox.runtime_error import RuntimeError
 
 

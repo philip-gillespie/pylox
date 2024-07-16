@@ -18,6 +18,29 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
+    def parse(self) -> list[stmt.Stmt]:
+        """Parse the tokens into a list of statements."""
+        statements = list()
+        while not self.is_at_end():
+            statement: stmt.Stmt | None = self.declaration()
+            statements.append(statement)
+        return statements
+
+    def is_at_end(self):
+        """Check if current token is EOF (End Of File)."""
+        current_token = self.tokens[self.current]
+        return current_token.token_type == TokenType.EOF
+
+    def declaration(self):
+        """Checks for Variable declaration, otherwise runs as a statement."""
+        try:
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+            return self.statement()
+        except ParserError:
+            self.synchronise()
+            return None
+
     def match(self, *token_types: TokenType) -> bool:
         for token_type in token_types:
             if self.check(token_type):
@@ -26,12 +49,11 @@ class Parser:
         return False
 
     def check(self, token_type: TokenType) -> bool:
-        if self.is_at_end():
-            return False
-        return self.peek().token_type == token_type
-
-    def is_at_end(self):
-        return self.peek().token_type == TokenType.EOF
+        """Checks whether the current token matches the token_type."""
+        # if self.is_at_end():
+        #     return False
+        current_token: Token = self.tokens[self.current]
+        return current_token.token_type == token_type
 
     def peek(self):
         return self.tokens[self.current]
@@ -147,28 +169,6 @@ class Parser:
                 return None
             self.advance()
 
-    # def parse(self) -> Expr | None:
-    #     try:
-    #         return self.expression()
-    #     except ParserError:
-    #         return None
-
-    def parse(self) -> list[stmt.Stmt]:
-        statements = list()
-        while not self.is_at_end():
-            statement: stmt.Stmt | None = self.declaration()
-            statements.append(statement)
-        return statements
-
-    def declaration(self):
-        try:
-            if self.match(TokenType.VAR):
-                return self.var_declaration()
-            return self.statement()
-        except ParserError:
-            self.synchronise()
-            return None
-
     def var_declaration(self) -> stmt.Stmt:
         name: Token = self.consume(
             TokenType.IDENTIFIER,
@@ -184,11 +184,26 @@ class Parser:
         return stmt.VarStmt(name, initialiser)
 
     def statement(self) -> stmt.Stmt:
+        """Return the next statement from the tokens."""
+        if self.match(TokenType.IF):
+            return self.if_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
         if self.match(TokenType.LEFT_BRACE):
             return stmt.BlockStmt(self.block())
         return self.expression_statement()
+
+    def if_statement(self):
+        """Parse an if statement."""
+        self.consume(TokenType.LEFT_PAREN, "Expect `(` after `if`.")
+        condition: expr.Expr = self.expression();
+        self.consume(TokenType.RIGHT_PAREN, "Expect `)` after condition.")
+        then_branch: stmt.Stmt = self.statement()
+        else_branch: stmt.Stmt| None = None
+        if self.match(TokenType.ELSE):
+            else_branch = self.statement()
+        return stmt.IfStmt(condition, then_branch, else_branch)
+
 
     def block(self) -> list[stmt.Stmt]:
         statements = list()

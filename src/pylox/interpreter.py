@@ -43,6 +43,14 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
         self.evaluate(expression_stmt.expression)
         return None
 
+    def visit_if_stmt(self, if_stmt: stmt.IfStmt) -> Any:
+        condition_outcome: Any = self.evaluate(if_stmt.condition)
+        if self.is_truthy(condition_outcome):
+            self.execute(if_stmt.then_branch)
+        elif if_stmt.else_branch is not None:
+            self.execute(if_stmt.else_branch)
+        return None
+
     def visit_print_stmt(self, print_stmt: stmt.PrintStmt) -> Any:
         value: Any = self.evaluate(print_stmt.expression)
         print(value)
