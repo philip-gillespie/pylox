@@ -71,7 +71,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> expr.Expr:
-        expression = self.equality()
+        expression = self._or()
         if self.match(TokenType.EQUAL):
             equals: Token = self.previous()
             value: expr.Expr = self.assignment()
@@ -82,6 +82,25 @@ class Parser:
             # Book says do not throw error.
             # Book uses function `error`
         return expression
+
+    def _or(self) -> expr.Expr:
+        """Handle Or Expression or pass through."""
+        expression: expr.Expr = self._and()
+        while self.match(TokenType.OR):
+            operator: Token = self.previous()
+            right: expr.Expr = self._and()
+            expression = expr.Logical(expression, operator, right)
+        return expression
+
+    def _and(self)-> expr.Expr:
+        "Handle And Expression or pass through."
+        expression: expr.Expr = self.equality()
+        while self.match(TokenType.AND):
+            operator: Token = self.previous()
+            right: expr.Expr = self.equality()
+            expression = expr.Logical(expression, operator, right)
+        return expression
+        
 
     def equality(self) -> expr.Expr:
         expression: expr.Expr = self.comparison()

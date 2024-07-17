@@ -23,7 +23,6 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
         finally:
             self.environment = previous
 
-
     def visit_var_stmt(self, var_stmt: stmt.VarStmt) -> Any:
         value: Any = None
         if var_stmt.initialiser != None:
@@ -61,6 +60,25 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
 
     def visit_literal(self, literal: expr.Literal) -> Any:
         return literal.value
+
+    def visit_logical(self, logical: expr.Logical) -> Any:
+        """Interpret a logical expression containing `and` or `or`."""
+        left: Any = self.evaluate(logical.left)
+        match logical.operator.token_type:
+            case TokenType.OR:
+                if self.is_truthy(left):  # left is True, so we return it
+                    return left
+                right: Any = self.evaluate(logical.right)
+                if self.is_truthy(right):  # right is true, so we return it
+                    return right
+                return left # return left if we can
+            case TokenType.AND:
+                if not self.is_truthy(left):  # left is False, so we return it
+                    return left
+                right: Any = self.evaluate(logical.right)
+                if not self.is_truthy(right):  # right is False, so we return it
+                    return right
+                return left  # return left if we can
 
     def visit_grouping(self, grouping: expr.Grouping) -> Any:
         return self.evaluate(grouping.expression)
