@@ -202,12 +202,16 @@ class Parser:
         )
         return stmt.VarStmt(name, initialiser)
 
+
+
     def statement(self) -> stmt.Stmt:
         """Return the next statement from the tokens."""
         if self.match(TokenType.IF):
             return self.if_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        if self.match(TokenType.WHILE):
+            return self.while_statement()
         if self.match(TokenType.LEFT_BRACE):
             return stmt.BlockStmt(self.block())
         return self.expression_statement()
@@ -223,6 +227,13 @@ class Parser:
             else_branch = self.statement()
         return stmt.IfStmt(condition, then_branch, else_branch)
 
+    def while_statement(self) -> stmt.Stmt:
+        """Parse a while statement."""
+        self.consume(TokenType.LEFT_PAREN, "Expect `(` after `while`.")
+        condition: expr.Expr = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect `)` after condition.")
+        body: stmt.Stmt = self.statement()
+        return stmt.WhileStmt(condition, body)
 
     def block(self) -> list[stmt.Stmt]:
         statements = list()
