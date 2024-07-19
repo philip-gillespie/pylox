@@ -92,7 +92,7 @@ class Parser:
             expression = expr.Logical(expression, operator, right)
         return expression
 
-    def _and(self)-> expr.Expr:
+    def _and(self) -> expr.Expr:
         "Handle And Expression or pass through."
         expression: expr.Expr = self.equality()
         while self.match(TokenType.AND):
@@ -100,7 +100,6 @@ class Parser:
             right: expr.Expr = self.equality()
             expression = expr.Logical(expression, operator, right)
         return expression
-        
 
     def equality(self) -> expr.Expr:
         expression: expr.Expr = self.comparison()
@@ -202,10 +201,10 @@ class Parser:
         )
         return stmt.VarStmt(name, initialiser)
 
-
-
     def statement(self) -> stmt.Stmt:
         """Return the next statement from the tokens."""
+        if self.match(TokenType.FOR):
+            return self.for_statement()
         if self.match(TokenType.IF):
             return self.if_statement()
         if self.match(TokenType.PRINT):
@@ -216,13 +215,51 @@ class Parser:
             return stmt.BlockStmt(self.block())
         return self.expression_statement()
 
+    def for_statement(self) -> stmt.Stmt:
+        # Get the initialiser
+        self.consume(TokenType.LEFT_PAREN, "Expect `(` after for.")
+        initialiser: stmt.Stmt | None
+        if self.match(TokenType.SEMICOLON):
+            initialiser = None
+        elif self.match(TokenType.VAR):
+            initialiser = self.var_declaration()
+        else:
+            initialiser = self.expression_statement()
+        # Get the condition
+        condition: expr.Expr | None = None
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect `;` after loop condition")
+        # Get the increment
+        increment: expr.Expr | None = None
+        if not self.check(TokenType.RIGHT_PAREN):
+            increment = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect `)` after for clauses")
+        body: stmt.Stmt = self.statement()
+        # Desugaring for loop into a while loop
+        if increment is not None:
+            body = stmt.BlockStmt(
+                [
+                    body,
+                    stmt.ExpressionStmt(increment),
+                ]
+            )
+        # Add the condition to the loop
+        if condition is None:
+            condition = expr.Literal(True)
+        body = stmt.WhileStmt(condition, body)
+        # Add the initialiser if needed
+        if initialiser is not None:
+            body = stmt.BlockStmt([initialiser, body])
+        return body
+
     def if_statement(self):
         """Parse an if statement."""
         self.consume(TokenType.LEFT_PAREN, "Expect `(` after `if`.")
-        condition: expr.Expr = self.expression();
+        condition: expr.Expr = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect `)` after condition.")
         then_branch: stmt.Stmt = self.statement()
-        else_branch: stmt.Stmt| None = None
+        else_branch: stmt.Stmt | None = None
         if self.match(TokenType.ELSE):
             else_branch = self.statement()
         return stmt.IfStmt(condition, then_branch, else_branch)
