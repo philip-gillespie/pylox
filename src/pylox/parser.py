@@ -2,7 +2,6 @@
 
 from pylox.tokens import TokenType, Token
 
-# from pylox.expr import Expr, Binary, Unary, Literal, Grouping
 from pylox import stmt
 from pylox import expr
 
@@ -34,6 +33,8 @@ class Parser:
     def declaration(self):
         """Checks for Variable declaration, otherwise runs as a statement."""
         try:
+            if self.match(TokenType.FUN):
+                return self.function("function")
             if self.match(TokenType.VAR):
                 return self.var_declaration()
             return self.statement()
@@ -41,7 +42,22 @@ class Parser:
             self.synchronise()
             return None
 
+    def statement(self) -> stmt.Stmt:
+        """Return the next statement from the tokens."""
+        if self.match(TokenType.FOR):
+            return self.for_statement()
+        if self.match(TokenType.IF):
+            return self.if_statement()
+        if self.match(TokenType.PRINT):
+            return self.print_statement()
+        if self.match(TokenType.WHILE):
+            return self.while_statement()
+        if self.match(TokenType.LEFT_BRACE):
+            return stmt.BlockStmt(self.block())
+        return self.expression_statement()
+
     def match(self, *token_types: TokenType) -> bool:
+        """If the token types match, advance."""
         for token_type in token_types:
             if self.check(token_type):
                 self.advance()
@@ -50,8 +66,6 @@ class Parser:
 
     def check(self, token_type: TokenType) -> bool:
         """Checks whether the current token matches the token_type."""
-        # if self.is_at_end():
-        #     return False
         current_token: Token = self.tokens[self.current]
         return current_token.token_type == token_type
 
@@ -143,7 +157,34 @@ class Parser:
             operator: Token = self.previous()
             right: expr.Expr = self.unary()
             return expr.Unary(operator, right)
-        return self.primary()
+        return self.call()
+
+    def call(self) -> expr.Expr:
+        """Handles call syntax, moves on to primary if no match."""
+        expression = self.primary()
+        while True:
+            if self.match(TokenType.LEFT_PAREN):
+                expression = self.finish_call(expression)
+            break
+        return expression
+
+    def finish_call(self, callee: expr.Expr) -> expr.Expr:
+        arguments: list[expr.Expr] = list()
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+        while self.match(TokenType.COMMA):
+            if len(arguments) >= 255:
+                # book says report error, but do not raise. Need to
+                raise ParserError(
+                    self.peek(),
+                    "Cannot have more than 255 arguments.",
+                )
+            arguments.append(self.expression())
+        paren: Token = self.consume(
+            TokenType.RIGHT_PAREN,
+            "Expect `)` after arguments.",
+        )
+        return expr.Call(callee, paren, arguments)
 
     def primary(self) -> expr.Expr:
         if self.match(TokenType.FALSE):
@@ -201,19 +242,34 @@ class Parser:
         )
         return stmt.VarStmt(name, initialiser)
 
-    def statement(self) -> stmt.Stmt:
-        """Return the next statement from the tokens."""
-        if self.match(TokenType.FOR):
-            return self.for_statement()
-        if self.match(TokenType.IF):
-            return self.if_statement()
-        if self.match(TokenType.PRINT):
-            return self.print_statement()
-        if self.match(TokenType.WHILE):
-            return self.while_statement()
-        if self.match(TokenType.LEFT_BRACE):
-            return stmt.BlockStmt(self.block())
-        return self.expression_statement()
+    def function(self, kind: str) -> stmt.Stmt:
+        name: Token = self.consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
+        self.consume(TokenType.LEFT_PAREN, f"Expect `(` after {kind} name.")
+        parameters: list[Token] = list()
+        if not self.check(TokenType.RIGHT_PAREN):
+            if len(parameters) >= 255:
+                raise ParserError(
+                    self.peek(),
+                    "Cannot have more than 255 parameters",
+                )
+            parameters.append(
+                self.consume(
+                    TokenType.IDENTIFIER,
+                    "Expect parameter name",
+                )
+            )
+            while self.match(TokenType.COMMA):
+                parameters.append(
+                    self.consume(
+                        TokenType.IDENTIFIER,
+                        "Expect parameter name",
+                    )
+                )
+            self.consume(TokenType.RIGHT_PAREN, "Expect `)` after parameters")
+        self.consume(TokenType.LEFT_BRACE, "Expect `{`"+ f"before {kind} body")
+        body: list[stmt.Stmt] = self.block()
+        return stmt.FunctionStmt(name, parameters, body)
+
 
     def for_statement(self) -> stmt.Stmt:
         # Get the initialiser

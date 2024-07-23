@@ -23,6 +23,10 @@ class StmtVisitor(ABC):
 		pass
 
 	@abstractmethod
+	def visit_function_stmt(self, function_stmt: FunctionStmt) -> Any:
+		pass
+
+	@abstractmethod
 	def visit_if_stmt(self, if_stmt: IfStmt) -> Any:
 		pass
 
@@ -54,6 +58,16 @@ class ExpressionStmt(Stmt):
 
 	def accept(self, visitor: StmtVisitor)-> Any:
 		return visitor.visit_expression_stmt(self)
+
+class FunctionStmt(Stmt):
+
+	def __init__(self, name: Token, params: list[Token], body: list[Stmt]):
+		self.name = name
+		self.params = params
+		self.body = body
+
+	def accept(self, visitor: StmtVisitor)-> Any:
+		return visitor.visit_function_stmt(self)
 
 class IfStmt(Stmt):
 

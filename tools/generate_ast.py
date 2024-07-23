@@ -13,6 +13,7 @@ def main():
         [
             "Assign = name: Token, value: Expr",
             "Binary = left: Expr, operator: Token, right: Expr",
+            "Call = callee: Expr, paren: Token, arguments: list[Expr]",
             "Grouping = expression: Expr",
             "Literal = value: Any",
             "Logical = left: Expr, operator: Token, right: Expr",
@@ -27,6 +28,7 @@ def main():
         [
             "BlockStmt = statements: list[Stmt]",
             "ExpressionStmt = expression: Expr",
+            "FunctionStmt = name: Token, params: list[Token], body: list[Stmt]",
             "IfStmt = condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
             "PrintStmt = expression: Expr",
             "VarStmt = name: Token, initialiser: Expr | None",
