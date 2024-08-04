@@ -1,19 +1,18 @@
 from __future__ import annotations
+from dataclasses import dataclass, field
 import enum
 
-
+@dataclass
 class Token:
-    def __init__(self, token_type: TokenType, lexeme: str, literal, line: int):
-        self.token_type = token_type
-        self.lexeme = lexeme
-        self.literal = literal
-        self.line = line
-
-    def __repr__(self) -> str:
-        return f"{self.token_type} {self.lexeme} {self.literal}"
+    token_type: Tok
+    lexeme: str
+    start: int
+    line: int
+    length: int = 1
+    n_newlines: int = 0
 
 
-class TokenType(enum.Enum):
+class Tok(enum.Enum):
     # Single-character tokens
     LEFT_PAREN = enum.auto()
     RIGHT_PAREN = enum.auto()
@@ -39,6 +38,7 @@ class TokenType(enum.Enum):
     IDENTIFIER = enum.auto()
     STRING = enum.auto()
     NUMBER = enum.auto()
+    COMMENT = enum.auto()
     # Keywords
     AND = enum.auto()
     CLASS = enum.auto()
@@ -56,5 +56,7 @@ class TokenType(enum.Enum):
     TRUE = enum.auto()
     VAR = enum.auto()
     WHILE = enum.auto()
+    # Whitespace
+    WHITESPACE = enum.auto()
     # End of File
     EOF = enum.auto()
