@@ -7,19 +7,7 @@ from pylox.runtime_error import RuntimeError
 from pylox.tokens import Token, TokenType
 from pylox.environment import Environment
 
-# from pylox.lox_callable import LoxCallable
 from typing import Protocol, runtime_checkable
-
-# from abc import ABC, abstractmethod
-
-
-# class LoxCallable(ABC):
-#
-#     @abstractmethod
-#     def call(self, interpreter: Interpreter, arguments: list[Any]) -> Any: ...
-#
-#     @abstractmethod
-#     def arity(self) -> int: ...
 
 
 class Clock:
@@ -54,11 +42,14 @@ class LoxFunction:
         self.declaration = declaration
 
     def call(self, interpreter: Interpreter, arguments: list[Any]) -> None:
+        print("CALLING")
         environment = Environment(interpreter.globals)
         for i, parameter in enumerate(self.declaration.params):
             environment.define(parameter.lexeme, arguments[i])
-        interpreter.execute_block(self.declaration.body, environment)
-        return None
+        print("EXECUTING")
+        result = interpreter.execute_block(self.declaration.body, environment)
+        print("EXECUTED")
+        return result
 
     def arity(self) -> int:
         return len(self.declaration.params)
@@ -73,13 +64,19 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
     def __init__(self) -> None:
         self.environment = self.globals
         self.globals.define("clock", Clock())
+        self.interrupt = False
 
     def interpret(self, statements: list[stmt.Stmt]) -> None:
+        print("INTERPRET")
         for statement in statements:
+            # if isinstance(statement, stmt.BlockStmt):
+            #     print("interpret calling_visit_block_statement")
             self.execute(statement)
 
     def execute(self, statement: stmt.Stmt):
         """Call the relevent visit method."""
+        if isinstance(statement, stmt.BlockStmt):
+            print("execute calling_visit_block_statement")
         statement.accept(self)
 
     def evaluate(self, expression: expr.Expr) -> Any:
@@ -87,6 +84,7 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
         return expression.accept(self)
 
     def visit_call(self, call: expr.Call):
+        print("VISIT CALL")
         """Interpret a function or method call."""
         function: Any = self.evaluate(call.callee)
         # check if callee is callable
@@ -105,20 +103,44 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
                 call.paren,
                 f"Expected {function.arity()} arguments but got {len(arguments)}.",
             )
-        return function.call(self, arguments)
+        result = function.call(self, arguments)
+        self.interrupt = False
+        print("RESET INTERRUPT")
+        return result
+
+    def visit_return_stmt(self, return_stmt: stmt.ReturnStmt) -> Any:
+        # print("HIT RETURN")
+        value: Any = None
+        if return_stmt.value is not None:
+            value = self.evaluate(return_stmt.value)
+        self.interrupt = True
+        # print("INTERRUPT IS TRUE")
+        return value
 
     def visit_block_stmt(self, block_stmt: stmt.BlockStmt):
-        self.execute_block(block_stmt.statements, Environment(self.environment))
-        return None
+        print("visit_block_stmt calling execute_block")
+        print(block_stmt.statements)
+        # result = self.execute_block(
+        #     block_stmt.statements, Environment(self.environment)
+        # )
+        # return result
 
     def execute_block(self, statements: list[stmt.Stmt], environment: Environment):
         previous: Environment = self.environment
+        result = None
+        print("CALL EXECUTE BLOCK")
         try:
             self.environment = environment
             for statement in statements:
-                self.execute(statement)
+                if self.interrupt is False:
+                    print("execute_block calling execute")
+                    # result = self.execute(statement)
+                    print(f"RESULT: {result}")
+                print("EXECUTED ALL STATEMENTS")
+            print("HERE NOW")
         finally:
             self.environment = previous
+            return result
 
     def visit_var_stmt(self, var_stmt: stmt.VarStmt) -> Any:
         value: Any = None
@@ -128,9 +150,12 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
         return None
 
     def visit_while_stmt(self, while_stmt: stmt.WhileStmt) -> Any:
-        while self.is_truthy(self.evaluate(while_stmt.condition)):
-            self.execute(while_stmt.body)
-        return None
+        result = None
+        while self.is_truthy(self.evaluate(while_stmt.condition)) and self.interrupt is False:
+            result = self.execute(while_stmt.body)
+            print("INDIDE WHILE LOOP, APPLY BREAKS")
+            break
+        return result
 
     def visit_assign(self, assign: expr.Assign) -> Any:
         value: Any = self.evaluate(assign.value)
@@ -141,8 +166,8 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
         return self.environment.get(variable.name)
 
     def visit_expression_stmt(self, expression_stmt: stmt.ExpressionStmt) -> Any:
-        self.evaluate(expression_stmt.expression)
-        return None
+        result = self.evaluate(expression_stmt.expression)
+        return result
 
     def visit_function_stmt(self, function_stmt: stmt.FunctionStmt) -> Any:
         """Assign a function to the environment."""
@@ -152,11 +177,12 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
 
     def visit_if_stmt(self, if_stmt: stmt.IfStmt) -> Any:
         condition_outcome: Any = self.evaluate(if_stmt.condition)
+        result = None
         if self.is_truthy(condition_outcome):
-            self.execute(if_stmt.then_branch)
+            result = self.execute(if_stmt.then_branch)
         elif if_stmt.else_branch is not None:
-            self.execute(if_stmt.else_branch)
-        return None
+            result = self.execute(if_stmt.else_branch)
+        return result
 
     def visit_print_stmt(self, print_stmt: stmt.PrintStmt) -> Any:
         value: Any = self.evaluate(print_stmt.expression)
@@ -261,9 +287,6 @@ class Interpreter(expr.ExprVisitor, stmt.StmtVisitor):
             return None
         raise RuntimeError(operator, "Operands must be numbers.")
 
-    # def interpret(self, expression: expr.Expr) -> None:
-    #     value = self.evaluate(expression)
-    #     print(str(value))
 
 
 if __name__ == "__main__":

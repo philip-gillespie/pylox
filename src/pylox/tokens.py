@@ -6,10 +6,14 @@ import enum
 class Token:
     token_type: Tok
     lexeme: str
-    start: int
-    line: int
-    length: int = 1
+    value: object = None
+    start: int = 0
+    line: int = 1
     n_newlines: int = 0
+
+    @property
+    def length(self):
+        return len(self.lexeme)
 
 
 class Tok(enum.Enum):
@@ -60,3 +64,5 @@ class Tok(enum.Enum):
     WHITESPACE = enum.auto()
     # End of File
     EOF = enum.auto()
+    # Empty
+    EMPTY = enum.auto()

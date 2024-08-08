@@ -87,7 +87,7 @@ def single_letter_token(code: str, offset: int, line: int) -> Token:
     """Return a token, given that it is in `single letter tokens`."""
     char: str = code[offset]
     token_type: Tok = single_letter_tokens[char]
-    return Token(token_type, char, offset, line)
+    return Token(token_type, char, None, offset, line)
 
 
 dyad_tokens = {
@@ -104,24 +104,22 @@ def dyad_token(code: str, offset: int, line: int) -> Token:
     next_char: str = get(code, offset + 1)
     if next_char in options:
         token_type: Tok = options[next_char]
-        return Token(token_type, char + next_char, offset, line, length=2)
+        return Token(token_type, char + next_char, None, offset, line)
     token_type: Tok = options["<default>"]
-    return Token(token_type, char, offset, line)
+    return Token(token_type, char, None, offset, line)
 
 
 def slash_or_comment_token(code: str, offset: int, line: int) -> Token:
     next_character: str = get(code, offset + 1)
     if next_character != "/":  # not a comment
-        return Token(Tok.SLASH, "/", offset, line)
+        return Token(Tok.SLASH, "/", None, offset, line)
     # THIS IS A COMMENT TOKEN
     next_newline: int = code.find("\n", offset)
     if next_newline == -1:  # not found in string
-        length = len(code) - offset
         text = code[offset:]
     else:
-        length = next_newline - offset
         text = code[offset:next_newline]
-    return Token(Tok.COMMENT, text, offset, line, length=length)
+    return Token(Tok.COMMENT, text, None, offset, line)
 
 
 def string_token(code: str, offset: int, line: int) -> Token:
@@ -138,14 +136,14 @@ def string_token(code: str, offset: int, line: int) -> Token:
                 line,
                 f"Error: Unterminated string",
             )
-    value = code[offset + 1 : i]
-    length = len(value) + 2
+    i += 1 # capture closing bracket
+    value = code[offset : i]
     return Token(
         Tok.STRING,
         value,
+        value[1:-1],
         offset,
         line,
-        length=length,
         n_newlines=n_newlines,
     )
 
@@ -169,12 +167,13 @@ def number_token(code: str, offset: int, line: int) -> Token:
             i += 1
             char = get(code, i)
     # `i` will always be index following the last digit
+    lexeme = code[offset:i]
     return Token(
         token_type=Tok.NUMBER,
-        lexeme=code[offset:i],
+        lexeme=lexeme,
+        value=float(lexeme),
         start=offset,
         line=line,
-        length=i - offset,
     )
 
 
@@ -207,8 +206,8 @@ def keyword_or_identifier_token(code: str, offset: int, line: int) -> Token:
     lexeme: str = code[offset:i]
     if lexeme in KEYWORDS:
         token_type = KEYWORDS[lexeme]
-        return Token(token_type, lexeme, offset, line, length=i - offset)
-    return Token(Tok.IDENTIFIER, lexeme, offset, line, length=i - offset)
+        return Token(token_type, lexeme, None, offset, line)
+    return Token(Tok.IDENTIFIER, lexeme, None, offset, line)
 
 
 def whitespace_token(code: str, offset: int, line: int) -> Token:
@@ -224,8 +223,8 @@ def whitespace_token(code: str, offset: int, line: int) -> Token:
     return Token(
         Tok.WHITESPACE,
         lexeme,
+        None,
         offset,
         line,
-        length=i - offset,
         n_newlines=n_newlines,
     )

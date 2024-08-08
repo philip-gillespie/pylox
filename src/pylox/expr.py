@@ -1,120 +1,65 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Any
+from typing import Protocol
+from dataclasses import dataclass
 
 from pylox.scanner import Token
 
+# @dataclass
+# class Expr(ABC): ...
 
-class Expr(ABC):
+class Expr(Protocol):
+    length: int
 
-	@abstractmethod
-	def accept(self, visitor: ExprVisitor) -> Any:
-		pass
-
-
-class ExprVisitor(ABC):
-
-	@abstractmethod
-	def visit_assign(self, assign: Assign) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_binary(self, binary: Binary) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_call(self, call: Call) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_grouping(self, grouping: Grouping) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_literal(self, literal: Literal) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_logical(self, logical: Logical) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_unary(self, unary: Unary) -> Any:
-		pass
-
-	@abstractmethod
-	def visit_variable(self, variable: Variable) -> Any:
-		pass
+@dataclass
+class Assign():
+    name: Token
+    value: Expr
 
 
-class Assign(Expr):
+@dataclass
+class Binary():
+    left: Expr
+    operator: Token
+    right: Expr
+    length: int
 
-	def __init__(self, name: Token, value: Expr):
-		self.name = name
-		self.value = value
 
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_assign(self)
+@dataclass
+class Call():
+    callee: Expr
+    paren: Token
+    arguments: list[Expr]
 
-class Binary(Expr):
+@dataclass
+class Empty():
+    length=0
 
-	def __init__(self, left: Expr, operator: Token, right: Expr):
-		self.left = left
-		self.operator = operator
-		self.right = right
+@dataclass
+class Grouping():
+    expression: Expr
+    length: int 
 
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_binary(self)
 
-class Call(Expr):
+@dataclass
+class Literal():
+    value: object
+    length: int
 
-	def __init__(self, callee: Expr, paren: Token, arguments: list[Expr]):
-		self.callee = callee
-		self.paren = paren
-		self.arguments = arguments
 
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_call(self)
+@dataclass
+class Logical():
+    left: Expr
+    operator: Token
+    right: Expr
 
-class Grouping(Expr):
 
-	def __init__(self, expression: Expr):
-		self.expression = expression
+@dataclass
+class Unary():
+    operator: Token
+    right: Expr
+    length: int
 
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_grouping(self)
+@dataclass
+class Variable():
+    name: Token
 
-class Literal(Expr):
-
-	def __init__(self, value: Any):
-		self.value = value
-
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_literal(self)
-
-class Logical(Expr):
-
-	def __init__(self, left: Expr, operator: Token, right: Expr):
-		self.left = left
-		self.operator = operator
-		self.right = right
-
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_logical(self)
-
-class Unary(Expr):
-
-	def __init__(self, operator: Token, right: Expr):
-		self.operator = operator
-		self.right = right
-
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_unary(self)
-
-class Variable(Expr):
-
-	def __init__(self, name: Token):
-		self.name = name
-
-	def accept(self, visitor: ExprVisitor)-> Any:
-		return visitor.visit_variable(self)

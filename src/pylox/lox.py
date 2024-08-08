@@ -5,7 +5,7 @@ from pylox.tokens import Token, Tok
 
 # from pylox.parser import Parser, ParserError
 # from pylox.runtime_error import RuntimeError
-from pylox import scanner
+from pylox import scanner, parser
 
 
 class Lox:
@@ -34,6 +34,8 @@ class Lox:
         except scanner.ScannerError as e:
             self.error(e.line, e.message)
             return None
+        expressions = [parser.next_expression(tokens)]
+        print(expressions)
 
     #     tokens: list[Token] = scanner.tokens
     #     # print(tokens)
