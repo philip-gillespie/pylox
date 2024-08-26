@@ -120,17 +120,17 @@ def evaluate(
     Return the resulting value and environment.
     """
     if isinstance(expression, expr.Literal):
-        return interpret_literal(expression, env)
+        return evaluate_literal(expression, env)
     if isinstance(expression, expr.Grouping):
-        return interpret_grouping(expression, env)
+        return evaluate_grouping(expression, env)
     if isinstance(expression, expr.Unary):
-        return interpret_unary(expression, env)
+        return evaluate_unary(expression, env)
     if isinstance(expression, expr.Binary):
-        return interpret_binary(expression, env)
+        return evaluate_binary(expression, env)
     if isinstance(expression, expr.Variable):
-        return interpret_variable(expression, env)
+        return evaluate_variable(expression, env)
     if isinstance(expression, expr.Assign):
-        return interpret_assign(expression, env)
+        return evaluate_assign(expression, env)
     if isinstance(expression, expr.Logical):
         return evaluate_logical(expression, env)
     if isinstance(expression, expr.Call):
@@ -202,7 +202,7 @@ def evaluate_logical_and(
     return right_value, right_env
 
 
-def interpret_assign(
+def evaluate_assign(
     expression: expr.Assign, env: Environment
 ) -> tuple[object, Environment]:
     """
@@ -215,7 +215,7 @@ def interpret_assign(
     return None, output_env
 
 
-def interpret_variable(
+def evaluate_variable(
     expression: expr.Variable, env: Environment
 ) -> tuple[object, Environment]:
     """
@@ -226,7 +226,7 @@ def interpret_variable(
     return result, env
 
 
-def interpret_literal(
+def evaluate_literal(
     expression: expr.Literal, env: Environment
 ) -> tuple[object, Environment]:
     """
@@ -235,7 +235,7 @@ def interpret_literal(
     return expression.value, env
 
 
-def interpret_grouping(
+def evaluate_grouping(
     expression: expr.Grouping, env: Environment
 ) -> tuple[object, Environment]:
     """
@@ -246,7 +246,7 @@ def interpret_grouping(
     return evaluate(internal, env)
 
 
-def interpret_unary(
+def evaluate_unary(
     expression: expr.Unary, env: Environment
 ) -> tuple[object, Environment]:
     """
@@ -290,7 +290,7 @@ BINARY_NUMERIC_OPERATIONS = {
 }
 
 
-def interpret_binary(
+def evaluate_binary(
     expression: expr.Binary, env: Environment
 ) -> tuple[object, Environment]:
     """
@@ -303,7 +303,7 @@ def interpret_binary(
     match operator.token_type:
         case t if t in BINARY_NUMERIC_OPERATIONS:
             # left and right are only allowed to be numeric
-            return interpret_binary_numeric(left, operator, right), output_env
+            return evaluate_binary_numeric(left, operator, right), output_env
         case Tok.PLUS:
             return add(left, operator, right), output_env
         case Tok.BANG_EQUAL:
@@ -314,7 +314,7 @@ def interpret_binary(
             raise RuntimeError(operator, "Unexpected operator.")
 
 
-def interpret_binary_numeric(left: object, operator: Token, right: object):
+def evaluate_binary_numeric(left: object, operator: Token, right: object):
     operation = BINARY_NUMERIC_OPERATIONS[operator.token_type]
     if not isinstance(left, float) or not isinstance(right, float):
         raise RuntimeError(operator, ERROR_FLOAT_OPERANDS)

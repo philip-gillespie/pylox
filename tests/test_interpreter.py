@@ -310,7 +310,7 @@ def test_interpret_literal_expression(
     expected: object,
 ):
     env = Environment()
-    result, new_env = interpreter.interpret_literal(expression, env)
+    result, new_env = interpreter.evaluate_literal(expression, env)
     assert result == expected
     assert env == new_env
 
@@ -318,7 +318,7 @@ def test_interpret_literal_expression(
 def test_interpret_grouping_expression():
     env = Environment()
     expression = expr.Grouping(expr.Literal(5))
-    result, new_env = interpreter.interpret_grouping(expression, env)
+    result, new_env = interpreter.evaluate_grouping(expression, env)
     expected = 5
     assert result == expected
     assert env == new_env
@@ -336,7 +336,7 @@ def test_interpret_grouping_expression():
 )
 def test_unary_operator(expression: expr.Unary, expected: object):
     env = Environment()
-    result, new_env = interpreter.interpret_unary(expression, env)
+    result, new_env = interpreter.evaluate_unary(expression, env)
     assert result == expected
     assert env == new_env
 
@@ -356,7 +356,7 @@ def test_unary_operator(expression: expr.Unary, expected: object):
 )
 def test_unary_runtime_error(expression: expr.Unary):
     with pytest.raises(interpreter.RuntimeError):
-        _ = interpreter.interpret_unary(expression, Environment())
+        _ = interpreter.evaluate_unary(expression, Environment())
 
 
 @pytest.mark.parametrize(
@@ -429,7 +429,7 @@ def test_is_truthy(value: object, expected: bool):
 )
 def test_binary_expression(expression: expr.Binary, expected: object):
     environment = Environment()
-    result, output_env = interpreter.interpret_binary(expression, environment)
+    result, output_env = interpreter.evaluate_binary(expression, environment)
     assert result == expected
     assert environment == output_env
 
@@ -445,7 +445,7 @@ def test_binary_expression_error():
         right=expr.Literal(5.0),
     )
     with pytest.raises(interpreter.RuntimeError):
-        interpreter.interpret_binary(expression, Environment())
+        interpreter.evaluate_binary(expression, Environment())
 
 
 @pytest.mark.parametrize(
@@ -468,7 +468,7 @@ def test_binary_expression_error():
 def test_interpret_binary_numeric(
     left: object, operator: Token, right: object, expected: object
 ):
-    result = interpreter.interpret_binary_numeric(left, operator, right)
+    result = interpreter.evaluate_binary_numeric(left, operator, right)
     assert result == expected
 
 
@@ -477,7 +477,7 @@ def test_interpret_binary_numeric_error():
     right = 3.0
     operator = Token(Tok.SLASH, "/")
     with pytest.raises(interpreter.RuntimeError):
-        interpreter.interpret_binary_numeric(left, operator, right)
+        interpreter.evaluate_binary_numeric(left, operator, right)
 
 
 @pytest.mark.parametrize(
