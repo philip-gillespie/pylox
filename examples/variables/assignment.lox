@@ -1,0 +1,7 @@
+// assignment.lox
+// declaration
+var x = 5;
+print x;
+//assignment
+x = 6;
+print x;

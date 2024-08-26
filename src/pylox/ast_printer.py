@@ -26,7 +26,7 @@ class AstPrinter(expr.ExprVisitor, stmt.StmtVisitor):
     def print(self, text: expr.Expr| stmt.Stmt) -> str:
         return text.accept(self)  # calls one of the visit methods
 
-    def visit_var_stmt(self, var_stmt: stmt.VarStmt) -> Any:
+    def visit_var_stmt(self, var_stmt: stmt.Var) -> Any:
         return self.parenthesize("define", var_stmt.initialiser)
 
     def visit_variable(self, variable: expr.Variable) -> Any:
@@ -35,7 +35,7 @@ class AstPrinter(expr.ExprVisitor, stmt.StmtVisitor):
     def visit_print_stmt(self, print_stmt: stmt.PrintStmt) -> Any:
         return self.parenthesize("print", print_stmt.expression)
 
-    def visit_expression_stmt(self, expression_stmt: stmt.ExpressionStmt) -> Any:
+    def visit_expression_stmt(self, expression_stmt: stmt.Expression) -> Any:
         return self.parenthesize("", expression_stmt.expression)
 
     def visit_binary(self, binary: expr.Binary) -> str:

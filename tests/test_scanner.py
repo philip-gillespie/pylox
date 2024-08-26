@@ -212,6 +212,11 @@ def test_number_token(code: str, expected: Token):
     result = scanner.number_token(code, offset, line)
     assert result == expected
 
+def test_number_token_is_float():
+    code = "42"
+    result: Token = scanner.number_token(code, 0, 1)
+    assert isinstance(result.value, float)
+
 
 @pytest.mark.parametrize(
     "code,expected",

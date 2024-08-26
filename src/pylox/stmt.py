@@ -1,22 +1,24 @@
 # from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
+from typing import Protocol
 
 from pylox.expr import Expr
 from pylox.tokens import Token
 
 
-class Stmt(ABC):
-    pass
+# class Stmt(ABC):
+#     pass
 
+class Stmt(Protocol): pass
 
 @dataclass
-class BlockStmt(Stmt):
+class Block():
     statements: list[Stmt]
 
 
 @dataclass
-class ExpressionStmt(Stmt):
+class Expression():
     expression: Expr
 
 
@@ -35,7 +37,7 @@ class IfStmt(Stmt):
 
 
 @dataclass
-class PrintStmt(Stmt):
+class PrintStmt():
     expression: Expr
 
 
@@ -46,12 +48,12 @@ class ReturnStmt(Stmt):
 
 
 @dataclass
-class VarStmt(Stmt):
+class Var(Stmt):
     name: Token
     initialiser: Expr | None
 
 
 @dataclass
-class WhileStmt(Stmt):
+class While(Stmt):
     condition: Expr
     body: Stmt

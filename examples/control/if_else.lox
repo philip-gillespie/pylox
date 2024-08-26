@@ -1,0 +1,7 @@
+// if_else.lox
+// Testing if else expression in lox.
+
+if (1 == 0)
+    print "cats";
+else
+    print "dogs";

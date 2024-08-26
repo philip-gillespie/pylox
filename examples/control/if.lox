@@ -1,0 +1,5 @@
+// if.lox
+// Testing if statement
+
+if (true)
+    print "hello";

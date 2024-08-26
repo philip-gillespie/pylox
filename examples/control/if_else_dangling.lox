@@ -1,0 +1,7 @@
+// if_else_dangling.lox
+
+if (true)
+    if (false)
+        print "cats";
+    else
+        print "dogs";

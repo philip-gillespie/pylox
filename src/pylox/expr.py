@@ -4,11 +4,8 @@ from dataclasses import dataclass
 
 from pylox.scanner import Token
 
-# @dataclass
-# class Expr(ABC): ...
 
-class Expr(Protocol):
-    length: int
+class Expr(Protocol): pass
 
 @dataclass
 class Assign():
@@ -21,7 +18,6 @@ class Binary():
     left: Expr
     operator: Token
     right: Expr
-    length: int
 
 
 @dataclass
@@ -31,19 +27,16 @@ class Call():
     arguments: list[Expr]
 
 @dataclass
-class Empty():
-    length=0
+class Empty(): pass
 
 @dataclass
 class Grouping():
     expression: Expr
-    length: int 
 
 
 @dataclass
 class Literal():
     value: object
-    length: int
 
 
 @dataclass
@@ -57,7 +50,6 @@ class Logical():
 class Unary():
     operator: Token
     right: Expr
-    length: int
 
 @dataclass
 class Variable():
