@@ -31,11 +31,25 @@ def parse_args() -> str | None:
 
 
 def run_repl() -> None:
-    raise NotImplementedError
+    while True:
+        try:
+            line = input("> ")
+            if line == "":
+                continue
+            run(line)
+        except EOFError:
+            break
 
 
 def run_script(filename: str) -> None:
-    raise NotImplementedError
+    with open(filename) as f:
+        text = f.read()
+        run(text)
+
+
+def run(text: str) -> None:
+    print(text)
+
 
 
 if __name__ == "__main__":
