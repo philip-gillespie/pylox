@@ -1,4 +1,6 @@
 import argparse
+import sys
+from dataclasses import dataclass, replace
 
 
 def main() -> None:
@@ -30,26 +32,42 @@ def parse_args() -> str | None:
     return args.filename
 
 
+@dataclass(frozen=True)
+class LoxState:
+    had_error: bool = False
+
+
 def run_repl() -> None:
+    state = LoxState()
     while True:
         try:
             line = input("> ")
-            if line == "":
-                continue
-            run(line)
         except EOFError:
             break
+        if line == "":
+            continue
+        state = run(line, state)
+        if state.had_error:
+            state = replace(state, had_error=False)
 
 
 def run_script(filename: str) -> None:
+    state = LoxState()
     with open(filename) as f:
         text = f.read()
-        run(text)
+    state = run(text, state)
+    if state.had_error:
+        sys.exit(65)
 
 
-def run(text: str) -> None:
+def run(text: str, state: LoxState) -> LoxState:
     print(text)
+    return state
 
+
+def handle_lox_error(line: int, where: str, message: str, state: LoxState) -> LoxState:
+    sys.stderr.write(f"[line {line}] Error {where}:{message}\n")
+    return replace(state, had_error=True)
 
 
 if __name__ == "__main__":
